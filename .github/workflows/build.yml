@@ -7,7 +7,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: unzip -q kino-ai-editor-github.zip -d app
+      - name: Find and unzip the project
+        run: |
+          Z=$(find . -maxdepth 3 -iname '*.zip' -not -path './.git/*' | head -1)
+          if [ -z "$Z" ]; then echo "No zip file found in the repo. Files:"; ls -R | head -50; exit 1; fi
+          echo "Using zip: $Z"
+          unzip -q "$Z" -d unz
+          PJ=$(find unz -name package.json -not -path '*/node_modules/*' | head -1)
+          if [ -z "$PJ" ]; then echo "package.json not found inside the zip"; exit 1; fi
+          mv "$(dirname "$PJ")" app
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
       - uses: actions/setup-java@v4
