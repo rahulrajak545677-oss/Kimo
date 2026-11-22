@@ -1,0 +1,26 @@
+name: Build KINO APK
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: unzip -q kino-ai-editor-github.zip -d app
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17 }
+      - run: npm install
+        working-directory: app
+      - run: npx cap add android
+        working-directory: app
+      - run: npx cap sync android
+        working-directory: app
+      - run: chmod +x gradlew && ./gradlew assembleDebug
+        working-directory: app/android
+      - uses: actions/upload-artifact@v4
+        with:
+          name: kino-debug-apk
+          path: app/android/app/build/outputs/apk/debug/*.apk
